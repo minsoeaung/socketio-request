@@ -1,5 +1,5 @@
 import {Box, Button, Flex, Heading, HStack, Input, Radio, RadioGroup, Stack, Textarea, VStack} from "@chakra-ui/react";
-import {ChangeEventHandler, useCallback, useRef, useState} from "react";
+import {ChangeEventHandler, KeyboardEventHandler, useCallback, useRef, useState} from "react";
 import {ElementType} from "../../utils/types";
 import getBase64 from "../../utils/getBase64";
 import {useSocket} from "../../context/SocketContext";
@@ -41,7 +41,12 @@ const EventEmitter = () => {
         emitEvent(eventName, base64Str);
         return;
     }
-    console.log('send');
+  }
+
+  const handleKeyDown: KeyboardEventHandler = (e) => {
+    if (e.key === 'Enter') {
+      handleSend();
+    }
   }
 
   return (
@@ -66,7 +71,7 @@ const EventEmitter = () => {
           </Box>
         </VStack>
         <HStack maxW='50%'>
-          <Input placeholder='Event name' ref={eventNameInputRef}/>
+          <Input placeholder='Event name' ref={eventNameInputRef} onKeyDown={handleKeyDown}/>
           <Button
             colorScheme='teal'
             variant='outline'

@@ -52,7 +52,7 @@ export const SocketContextProvider = ({children}: { children: ReactNode }) => {
   }, [socketRef.current])
 
   const emitEvent = useCallback(<T, >(eventName: string, arg: EventArg<T>) => {
-    socketRef.current?.emit(eventName, {binary: arg});
+    socketRef.current?.emit(eventName, arg);
   }, []);
 
   return (
