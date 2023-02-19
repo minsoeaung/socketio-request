@@ -8,6 +8,8 @@ const SocketContext = createContext({
   },
   disconnectSocket: () => {
   },
+  emitEvent: <T, >(eventName: string, arg: EventArg<T>) => {
+  },
   socketId: ''
 });
 
@@ -15,6 +17,7 @@ export const SocketContextProvider = ({children}: { children: ReactNode }) => {
   const toast = useToast();
   const socketRef = useRef<Socket | null>(null);
   const [socketId, setSocketId] = useState('');
+
 
   const connectSocket = useCallback((url: string) => {
     socketRef.current = io(url);
@@ -45,12 +48,11 @@ export const SocketContextProvider = ({children}: { children: ReactNode }) => {
     if (socketRef.current) {
       setSocketId('');
       socketRef.current.disconnect();
-      console.log('disconnected')
     }
   }, [socketRef.current])
 
   const emitEvent = useCallback(<T, >(eventName: string, arg: EventArg<T>) => {
-
+    socketRef.current?.emit(eventName, {binary: arg});
   }, []);
 
   return (
@@ -58,7 +60,8 @@ export const SocketContextProvider = ({children}: { children: ReactNode }) => {
       value={{
         connectSocket,
         disconnectSocket,
-        socketId
+        socketId,
+        emitEvent
       }}
     >
       {children}
