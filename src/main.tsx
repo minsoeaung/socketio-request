@@ -4,11 +4,14 @@ import App from './App'
 import './index.css'
 import {ChakraProvider} from "@chakra-ui/react";
 import theme from "./theme";
+import {SocketContextProvider} from "./context/SocketContext";
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
     <ChakraProvider theme={theme}>
-      <App/>
+      <SocketContextProvider>
+        <App/>
+      </SocketContextProvider>
     </ChakraProvider>
   </React.StrictMode>,
 )
