@@ -1,33 +1,36 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import './App.css'
+import {Grid, GridItem} from "@chakra-ui/react";
+import EventEmitter from "./components/EventEmitter";
+import Header from "./components/Header";
+import OutGoingEvents from "./components/OutGoingEvents";
+import IncomingEvents from "./components/IncomingEvents";
+import ListeningEvents from "./components/ListeningEvents";
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <div className="App">
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src="/vite.svg" className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://reactjs.org" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </div>
+    <Grid
+      templateAreas={`"Header Header"
+                  "EventEmitter OutGoingEvents"
+                  "ListeningEvents IncomingEvents"`}
+      templateRows='50px 1fr 1fr'
+      templateColumns='1fr 1fr'
+      h='100vh'
+    >
+      <GridItem area='Header'>
+        <Header/>
+      </GridItem>
+      <GridItem area='EventEmitter'>
+        <EventEmitter/>
+      </GridItem>
+      <GridItem area='OutGoingEvents'>
+        <OutGoingEvents/>
+      </GridItem>
+      <GridItem area='ListeningEvents'>
+        <ListeningEvents/>
+      </GridItem>
+      <GridItem area='IncomingEvents'>
+        <IncomingEvents/>
+      </GridItem>
+    </Grid>
   )
 }
 
