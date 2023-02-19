@@ -16,7 +16,7 @@ const OutGoingEvents = () => {
               <Tag variant='solid' colorScheme='blue'>
                 <TagLabel>{event.event}</TagLabel>
               </Tag>
-              {event.payloadType === 'binary' && (
+              {event.payloadType === 'binary' && typeof event.payload === 'string' && (
                 <Image
                   boxSize='70px'
                   objectFit='cover'
@@ -27,7 +27,7 @@ const OutGoingEvents = () => {
               {event.payloadType === 'json' && (
                 <Text>{JSON.stringify(event.payload)}</Text>
               )}
-              {event.payloadType === 'text' && (
+              {event.payloadType === 'text' && typeof event.payload === 'string' && (
                 <Text>{event.payload}</Text>
               )}
               <Spacer/>
