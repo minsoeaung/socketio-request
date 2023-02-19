@@ -1,6 +1,6 @@
 import {createContext, ReactNode, useCallback, useContext, useRef, useState} from "react";
 import {io, Socket} from "socket.io-client";
-import {EventArg} from "../utils/types";
+import {EventArg, PayloadType} from "../utils/types";
 import {useToast} from "@chakra-ui/react";
 
 const SocketContext = createContext({
@@ -8,16 +8,19 @@ const SocketContext = createContext({
   },
   disconnectSocket: () => {
   },
-  emitEvent: <T, >(eventName: string, arg: EventArg<T>) => {
+  emitEvent: <T, >(eventName: string, payload: EventArg<T>, payloadType: PayloadType) => {
   },
-  socketId: ''
+  socketId: '',
+  outEvents: [] as OutEvent[]
 });
+
+type OutEvent = { event: string, payload: object | string, payloadType: PayloadType, timestamp: string };
 
 export const SocketContextProvider = ({children}: { children: ReactNode }) => {
   const toast = useToast();
   const socketRef = useRef<Socket | null>(null);
   const [socketId, setSocketId] = useState('');
-
+  const [outEvents, setOutEvents] = useState<OutEvent[]>([]);
 
   const connectSocket = useCallback((url: string) => {
     socketRef.current = io(url);
@@ -51,8 +54,13 @@ export const SocketContextProvider = ({children}: { children: ReactNode }) => {
     }
   }, [socketRef.current])
 
-  const emitEvent = useCallback(<T, >(eventName: string, arg: EventArg<T>) => {
-    socketRef.current?.emit(eventName, arg);
+  const emitEvent = useCallback(<T, >(eventName: string, payload: EventArg<T>, payloadType: PayloadType) => {
+    if (socketRef.current) {
+      socketRef.current.emit(eventName, payload);
+      setOutEvents(prevState => {
+        return [...prevState, {event: eventName, payload, payloadType, timestamp: new Date().toISOString()}]
+      })
+    }
   }, []);
 
   return (
@@ -61,7 +69,8 @@ export const SocketContextProvider = ({children}: { children: ReactNode }) => {
         connectSocket,
         disconnectSocket,
         socketId,
-        emitEvent
+        emitEvent,
+        outEvents
       }}
     >
       {children}

@@ -1,11 +1,8 @@
 import {Box, Button, Flex, Heading, HStack, Input, Radio, RadioGroup, Stack, Textarea, VStack} from "@chakra-ui/react";
 import {ChangeEventHandler, KeyboardEventHandler, useCallback, useRef, useState} from "react";
-import {ElementType} from "../../utils/types";
 import getBase64 from "../../utils/getBase64";
 import {useSocket} from "../../context/SocketContext";
-
-const payloadOptions = ['text', 'json', 'binary'] as const;
-type PayloadType = ElementType<typeof payloadOptions>;
+import {payloadOptions, PayloadType} from "../../utils/types";
 
 const EventEmitter = () => {
   const [payloadType, setPayloadType] = useState<PayloadType>('text');
@@ -32,13 +29,13 @@ const EventEmitter = () => {
     const eventName = eventNameInputRef.current.value;
     switch (payloadType) {
       case "text":
-        emitEvent(eventName, textInputRef.current?.value ?? '');
+        emitEvent(eventName, textInputRef.current?.value ?? '', payloadType);
         return;
       case "json":
-        emitEvent(eventName, 'wait');
+        emitEvent(eventName, 'wait', payloadType);
         return;
       case "binary":
-        emitEvent(eventName, base64Str);
+        emitEvent(eventName, base64Str, payloadType);
         return;
     }
   }
