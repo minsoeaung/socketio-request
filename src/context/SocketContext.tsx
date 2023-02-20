@@ -1,26 +1,26 @@
 import {createContext, ReactNode, useCallback, useContext, useRef, useState} from "react";
 import {io, Socket} from "socket.io-client";
-import {Payload, PayloadType} from "../utils/types";
 import {useToast} from "@chakra-ui/react";
+import {Payload} from "../utils/types";
 
 const SocketContext = createContext({
   connectSocket: (url: string) => {
   },
   disconnectSocket: () => {
   },
-  emitEvent: (eventName: string, payload: Payload<PayloadType>, payloadType: PayloadType) => {
+  emitEvent: (eventName: string, payload: Payload) => {
   },
   socketId: '',
-  outEvents: [] as OutEvent<PayloadType>[]
+  outEvents: [] as OutEvent[]
 });
 
-type OutEvent<T> = { event: string, payload: Payload<T>, payloadType: T, timestamp: string };
+type OutEvent = { eventName: string, payload: Payload, timestamp: string };
 
 export const SocketContextProvider = ({children}: { children: ReactNode }) => {
   const toast = useToast();
   const socketRef = useRef<Socket | null>(null);
   const [socketId, setSocketId] = useState('');
-  const [outEvents, setOutEvents] = useState<OutEvent<PayloadType>[]>([]);
+  const [outEvents, setOutEvents] = useState<OutEvent[]>([]);
 
   const connectSocket = useCallback((url: string) => {
     socketRef.current = io(url);
@@ -54,16 +54,15 @@ export const SocketContextProvider = ({children}: { children: ReactNode }) => {
     }
   }, [socketRef.current])
 
-  const emitEvent = useCallback((eventName: string, payload: Payload<PayloadType>, payloadType: PayloadType) => {
+  const emitEvent = useCallback((eventName: string, payload: Payload) => {
     if (socketRef.current) {
       socketRef.current.emit(eventName, payload);
-      const newEvent: OutEvent<PayloadType> = {
-        event: eventName,
+      const newOutEvent: OutEvent = {
+        eventName,
         payload,
-        payloadType,
         timestamp: new Date().toISOString()
       }
-      setOutEvents(prevState => [...prevState, newEvent])
+      setOutEvents(prevState => [...prevState, newOutEvent])
     }
   }, []);
 

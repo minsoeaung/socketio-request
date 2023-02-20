@@ -1,14 +1,10 @@
-type Base64<imageType extends string> = `data:image/${imageType};base64${string}`;
+export type Base64String = `data:image/${string};base64${string}`;
 
-export type EventArg<T = void> = T extends string ? Base64<T> : (string | object);
+// For 3 types of payload mode -> "text", "json" or "binary"
+export type Payload = string | object | Base64String | undefined;
 
 // https://github.com/microsoft/TypeScript/issues/28046
 export type ElementType<T extends ReadonlyArray<unknown>> =
   T extends ReadonlyArray<infer ElementType>
     ? ElementType
     : never
-
-export const payloadOptions = ['text', 'json', 'binary'] as const;
-export type PayloadType = ElementType<typeof payloadOptions>;
-
-export type Payload<T> = T extends 'text' | 'binary' ? string : object;

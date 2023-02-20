@@ -2,28 +2,32 @@ import {Box, Button, Flex, Heading, HStack, Input, Radio, RadioGroup, Stack, Tex
 import {ChangeEventHandler, KeyboardEventHandler, useCallback, useRef, useState} from "react";
 import getBase64 from "../../utils/getBase64";
 import {useSocket} from "../../context/SocketContext";
-import {payloadOptions, PayloadType} from "../../utils/types";
 import tryParseJSONObject from "../../utils/tryParseJSONObject";
 import {CheckIcon, WarningIcon} from "@chakra-ui/icons";
+import {Base64String, ElementType} from "../../utils/types";
+
+const PAYLOAD_MODES = ['text', 'json', 'binary'] as const;
+
+type PayloadMode = ElementType<typeof PAYLOAD_MODES>;
 
 const EventEmitter = () => {
-  const [payloadType, setPayloadType] = useState<PayloadType>('text');
-  const [base64Str, setBase64Str] = useState('');
+  const [selectedPayloadMode, setSelectedPayloadMode] = useState<PayloadMode>('text');
+  const [base64Str, setBase64Str] = useState<Base64String>();
   const [json, setJson] = useState<object>();
   const eventNameInputRef = useRef<HTMLInputElement>(null);
   const textInputRef = useRef<HTMLTextAreaElement>(null);
   const timerRef = useRef<number>();
   const {emitEvent} = useSocket();
 
-  const handlePayloadTypeChange = useCallback((value: PayloadType) => {
-    setPayloadType(value);
+  const handlePayloadTypeChange = useCallback((value: PayloadMode) => {
+    setSelectedPayloadMode(value);
   }, [])
 
   const handleFileChange: ChangeEventHandler<HTMLInputElement> = useCallback((e) => {
     if (e.target.files) {
       const file = e.target.files[0];
       getBase64(file).then((base64Str) => {
-        setBase64Str(base64Str as string);
+        setBase64Str(base64Str);
       });
     }
   }, [])
@@ -32,15 +36,15 @@ const EventEmitter = () => {
     const eventName = eventNameInputRef.current?.value;
     if (!eventName) return;
 
-    switch (payloadType) {
+    switch (selectedPayloadMode) {
       case "text":
-        emitEvent(eventName, textInputRef.current?.value ?? '', payloadType);
+        emitEvent(eventName, textInputRef.current?.value ?? '');
         return;
       case "json":
-        emitEvent(eventName, json ?? {}, payloadType);
+        emitEvent(eventName, json ?? {});
         return;
       case "binary":
-        emitEvent(eventName, base64Str, payloadType);
+        emitEvent(eventName, base64Str);
         return;
     }
   }
@@ -56,18 +60,18 @@ const EventEmitter = () => {
       <Flex direction='column' alignItems='end' justifyContent='space-between' h='100%'>
         <VStack justifyContent='start' alignItems='start' w='100%'>
           <Heading size='md' mb='4'>Emit event</Heading>
-          <RadioGroup onChange={handlePayloadTypeChange} value={payloadType}>
+          <RadioGroup onChange={handlePayloadTypeChange} value={selectedPayloadMode}>
             <Stack direction='row'>
-              {payloadOptions.map(option => (
+              {PAYLOAD_MODES.map(option => (
                 <Radio key={option} value={option}>{option.toUpperCase()}</Radio>
               ))}
             </Stack>
           </RadioGroup>
           <Box mt='2' p='2' borderWidth='1px' w='100%' minH='200px'>
-            {payloadType === 'binary' && (
+            {selectedPayloadMode === 'binary' && (
               <input type='file' onChange={handleFileChange}/>
             )}
-            {payloadType === 'json' && (
+            {selectedPayloadMode === 'json' && (
               <Box pos='relative'>
                 <Textarea
                   onChange={e => {
@@ -90,7 +94,7 @@ const EventEmitter = () => {
                 )}
               </Box>
             )}
-            {payloadType === 'text' && (
+            {selectedPayloadMode === 'text' && (
               <Textarea placeholder='text' ref={textInputRef}/>
             )}
           </Box>
