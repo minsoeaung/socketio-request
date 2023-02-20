@@ -3,12 +3,16 @@ import {ChangeEventHandler, KeyboardEventHandler, useCallback, useRef, useState}
 import getBase64 from "../../utils/getBase64";
 import {useSocket} from "../../context/SocketContext";
 import {payloadOptions, PayloadType} from "../../utils/types";
+import tryParseJSONObject from "../../utils/tryParseJSONObject";
+import {CheckIcon, WarningIcon} from "@chakra-ui/icons";
 
 const EventEmitter = () => {
   const [payloadType, setPayloadType] = useState<PayloadType>('text');
   const [base64Str, setBase64Str] = useState('');
+  const [json, setJson] = useState<object>();
   const eventNameInputRef = useRef<HTMLInputElement>(null);
   const textInputRef = useRef<HTMLTextAreaElement>(null);
+  const timerRef = useRef<number>();
   const {emitEvent} = useSocket();
 
   const handlePayloadTypeChange = useCallback((value: PayloadType) => {
@@ -25,14 +29,15 @@ const EventEmitter = () => {
   }, [])
 
   const handleSend = () => {
-    if (!eventNameInputRef.current) return;
-    const eventName = eventNameInputRef.current.value;
+    const eventName = eventNameInputRef.current?.value;
+    if (!eventName) return;
+
     switch (payloadType) {
       case "text":
         emitEvent(eventName, textInputRef.current?.value ?? '', payloadType);
         return;
       case "json":
-        emitEvent(eventName, 'wait', payloadType);
+        emitEvent(eventName, json ?? {}, payloadType);
         return;
       case "binary":
         emitEvent(eventName, base64Str, payloadType);
@@ -61,6 +66,29 @@ const EventEmitter = () => {
           <Box mt='2' p='2' borderWidth='1px' w='100%' minH='200px'>
             {payloadType === 'binary' && (
               <input type='file' onChange={handleFileChange}/>
+            )}
+            {payloadType === 'json' && (
+              <Box pos='relative'>
+                <Textarea
+                  onChange={e => {
+                    clearTimeout(timerRef.current);
+                    setJson(undefined);
+                    timerRef.current = setTimeout(() => {
+                      const result = tryParseJSONObject(e.target.value);
+                      if (result) {
+                        setJson(result);
+                      }
+                    }, 700)
+                  }}
+                  height="auto"
+                  rows={7}
+                />
+                {json ? (
+                  <CheckIcon pos='absolute' top={1} right={1} color='green.500'/>
+                ) : (
+                  <WarningIcon pos='absolute' top={1} right={1} color='red.500'/>
+                )}
+              </Box>
             )}
             {payloadType === 'text' && (
               <Textarea placeholder='text' ref={textInputRef}/>

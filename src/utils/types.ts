@@ -10,3 +10,5 @@ export type ElementType<T extends ReadonlyArray<unknown>> =
 
 export const payloadOptions = ['text', 'json', 'binary'] as const;
 export type PayloadType = ElementType<typeof payloadOptions>;
+
+export type Payload<T> = T extends 'text' | 'binary' ? string : object;

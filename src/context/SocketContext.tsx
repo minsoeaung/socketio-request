@@ -1,6 +1,6 @@
 import {createContext, ReactNode, useCallback, useContext, useRef, useState} from "react";
 import {io, Socket} from "socket.io-client";
-import {EventArg, PayloadType} from "../utils/types";
+import {Payload, PayloadType} from "../utils/types";
 import {useToast} from "@chakra-ui/react";
 
 const SocketContext = createContext({
@@ -8,19 +8,19 @@ const SocketContext = createContext({
   },
   disconnectSocket: () => {
   },
-  emitEvent: <T, >(eventName: string, payload: EventArg<T>, payloadType: PayloadType) => {
+  emitEvent: (eventName: string, payload: Payload<PayloadType>, payloadType: PayloadType) => {
   },
   socketId: '',
-  outEvents: [] as OutEvent[]
+  outEvents: [] as OutEvent<PayloadType>[]
 });
 
-type OutEvent = { event: string, payload: object | string, payloadType: PayloadType, timestamp: string };
+type OutEvent<T> = { event: string, payload: Payload<T>, payloadType: T, timestamp: string };
 
 export const SocketContextProvider = ({children}: { children: ReactNode }) => {
   const toast = useToast();
   const socketRef = useRef<Socket | null>(null);
   const [socketId, setSocketId] = useState('');
-  const [outEvents, setOutEvents] = useState<OutEvent[]>([]);
+  const [outEvents, setOutEvents] = useState<OutEvent<PayloadType>[]>([]);
 
   const connectSocket = useCallback((url: string) => {
     socketRef.current = io(url);
@@ -54,12 +54,16 @@ export const SocketContextProvider = ({children}: { children: ReactNode }) => {
     }
   }, [socketRef.current])
 
-  const emitEvent = useCallback(<T, >(eventName: string, payload: EventArg<T>, payloadType: PayloadType) => {
+  const emitEvent = useCallback((eventName: string, payload: Payload<PayloadType>, payloadType: PayloadType) => {
     if (socketRef.current) {
       socketRef.current.emit(eventName, payload);
-      setOutEvents(prevState => {
-        return [...prevState, {event: eventName, payload, payloadType, timestamp: new Date().toISOString()}]
-      })
+      const newEvent: OutEvent<PayloadType> = {
+        event: eventName,
+        payload,
+        payloadType,
+        timestamp: new Date().toISOString()
+      }
+      setOutEvents(prevState => [...prevState, newEvent])
     }
   }, []);
 

@@ -8,12 +8,12 @@ const OutGoingEvents = () => {
   return (
     <Box p={5} shadow='md' borderWidth='1px' h='100%'>
       <Heading size='md' mb='4'>Outgoing events</Heading>
-      <List spacing={3} maxH='50vh' overflow='scroll'>
+      <List spacing={3} maxH='calc(50vh - 100px)' overflowY='scroll' overflowX='hidden'>
         {outEvents.map((event) => (
           <ListItem key={event.timestamp}>
             <HStack align='center' justify='space'>
-              <ListIcon as={ArrowUpIcon} color='green.500'/>
-              <Tag variant='solid' colorScheme='blue'>
+              <ListIcon as={ArrowUpIcon} color='cyan.500'/>
+              <Tag variant='subtle' colorScheme='cyan'>
                 <TagLabel>{event.event}</TagLabel>
               </Tag>
               {event.payloadType === 'binary' && typeof event.payload === 'string' && (
