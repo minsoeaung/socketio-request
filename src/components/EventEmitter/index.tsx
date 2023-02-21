@@ -60,7 +60,7 @@ const EventEmitter = () => {
   };
 
   return (
-    <Box p={5} shadow="md" borderWidth="1px" h="100%">
+    <Box p={2} borderWidth="1px" h="100%">
       <Flex
         direction="column"
         alignItems="end"

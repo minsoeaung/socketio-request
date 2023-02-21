@@ -22,3 +22,14 @@ export type EmittedEvent = {
   payload: Payload;
   timestamp: string;
 };
+
+export type ReceivedEvent = {
+  eventName: string;
+  payload: string;
+  timestamp: string;
+};
+
+export type ListeningEvent = {
+  eventName: string;
+  isActive: boolean;
+};

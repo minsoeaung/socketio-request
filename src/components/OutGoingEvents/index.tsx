@@ -2,23 +2,30 @@ import {Box, Heading, HStack, Image, List, ListIcon, ListItem, Spacer, Tag, TagL
 import {useSocket} from "../../context/SocketContext";
 import {ArrowUpIcon} from "@chakra-ui/icons";
 import isBase64ImageString from "../../utils/isBase64ImageString";
+import {useRef} from "react";
+import useStayAtBottomIfBottom from "../../hooks/useStayAtBottomIfBottom";
 
 const OutGoingEvents = () => {
   const { emittedEvents } = useSocket();
 
+  const bottomMostElRef = useRef(null);
+
+  useStayAtBottomIfBottom(emittedEvents, bottomMostElRef.current ?? undefined);
+
   return (
-    <Box p={5} shadow="md" borderWidth="1px" h="100%">
+    <Box p={2} borderWidth="1px" h="100%">
       <Heading size="md" mb="4">
-        Outgoing events
+        <ArrowUpIcon color="cyan.500" /> Emitted events
       </Heading>
       <List
         spacing={3}
         maxH="calc(50vh - 100px)"
         overflowY="scroll"
         overflowX="hidden"
+        pl="3"
       >
         {emittedEvents.map(({ eventName, payload, timestamp }) => (
-          <ListItem key={timestamp}>
+          <ListItem key={timestamp} ref={bottomMostElRef}>
             <HStack align="center" justify="space">
               <ListIcon as={ArrowUpIcon} color="cyan.500" />
               <Tag variant="subtle" colorScheme="cyan">

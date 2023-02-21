@@ -1,7 +1,7 @@
 import {createContext, ReactNode, useCallback, useContext, useRef, useState,} from "react";
 import {io, Socket} from "socket.io-client";
 import {ToastId, useToast, UseToastOptions} from "@chakra-ui/react";
-import {EmittedEvent, HeaderInfo, Headers, Payload} from "../utils/types";
+import {EmittedEvent, HeaderInfo, Headers, ListeningEvent, Payload, ReceivedEvent,} from "../utils/types";
 
 const SocketContext = createContext({
   connectSocket: (url: string) => {},
@@ -11,6 +11,10 @@ const SocketContext = createContext({
   emittedEvents: [] as EmittedEvent[],
   setHeaders: (headers: Record<string, HeaderInfo>) => {},
   getHeaders: (): Record<string, HeaderInfo> => ({}),
+  addEventListener: (eventName: string) => {},
+  removeEventListener: (eventName: string) => {},
+  receivedEvents: [] as ReceivedEvent[],
+  listeningEvents: [] as ListeningEvent[],
 });
 
 export const SocketContextProvider = ({
@@ -23,6 +27,8 @@ export const SocketContextProvider = ({
   const socketRef = useRef<Socket | null>(null);
   const [socketId, setSocketId] = useState("");
   const [emittedEvents, setEmittedEvents] = useState<EmittedEvent[]>([]);
+  const [receivedEvents, setReceivedEvents] = useState<ReceivedEvent[]>([]);
+  const [listeningEvents, setListeningEvents] = useState<ListeningEvent[]>([]);
   const reqHeadersRef = useRef<Record<string, HeaderInfo>>({
     "0": { key: "", value: "", isActive: true },
   });
@@ -94,6 +100,47 @@ export const SocketContextProvider = ({
     return {};
   }, []);
 
+  const addEventListener = useCallback((eventName: string) => {
+    if (socketRef.current && socketRef.current.connected && eventName) {
+      socketRef.current.on(eventName, (...args) => {
+        setReceivedEvents((prevState) => [
+          ...prevState,
+          {
+            eventName,
+            payload: JSON.stringify(args),
+            timestamp: new Date().toISOString(),
+          },
+        ]);
+      });
+
+      setListeningEvents((prevState) => {
+        const existingEvent = prevState.find(
+          (event) => event.eventName === eventName
+        );
+        if (existingEvent) {
+          return prevState.map((event) =>
+            event.eventName === eventName
+              ? { ...existingEvent, isActive: true }
+              : event
+          );
+        } else {
+          return [...prevState, { eventName, isActive: true }];
+        }
+      });
+    }
+  }, []);
+
+  const removeEventListener = useCallback((eventName: string) => {
+    if (socketRef.current && socketRef.current.connected && eventName) {
+      socketRef.current.off(eventName);
+      setListeningEvents((prevState) =>
+        prevState.map((event) =>
+          event.eventName === eventName ? { ...event, isActive: false } : event
+        )
+      );
+    }
+  }, []);
+
   return (
     <SocketContext.Provider
       value={{
@@ -104,6 +151,10 @@ export const SocketContextProvider = ({
         emittedEvents,
         setHeaders,
         getHeaders,
+        addEventListener,
+        removeEventListener,
+        receivedEvents,
+        listeningEvents,
       }}
     >
       {children}
