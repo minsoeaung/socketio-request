@@ -2,6 +2,7 @@ import {
   Box,
   Button,
   ButtonGroup,
+  Checkbox,
   Drawer,
   DrawerBody,
   DrawerCloseButton,
@@ -13,15 +14,16 @@ import {
   Input,
   Spacer,
   Text,
-  useColorMode
+  useColorMode,
 } from "@chakra-ui/react";
 import {useSocket} from "../../context/SocketContext";
-import {useCallback, useRef, useState} from "react";
-import {AddIcon, ArrowDownIcon, CheckCircleIcon} from "@chakra-ui/icons";
+import {ChangeEvent, useCallback, useEffect, useRef, useState,} from "react";
+import {AddIcon, ArrowDownIcon, CheckCircleIcon, CheckIcon,} from "@chakra-ui/icons";
+import {HeaderInfo} from "../../utils/types";
 
 const Header = () => {
-  const {colorMode, toggleColorMode} = useColorMode();
-  const {connectSocket, disconnectSocket, socketId} = useSocket();
+  const { colorMode, toggleColorMode } = useColorMode();
+  const { connectSocket, disconnectSocket, socketId } = useSocket();
   const [isReqHeaderDrawerOpen, setIsReqHeaderDrawerOpen] = useState(false);
   const urlInputRef = useRef<HTMLInputElement>(null);
 
@@ -39,22 +41,22 @@ const Header = () => {
 
   const openReqHeaderDrawer = useCallback(() => {
     setIsReqHeaderDrawerOpen(true);
-  }, [])
+  }, []);
 
   return (
-    <Box h='100%'>
-      <Flex h='100%' justify='space-between' align='center'>
+    <Box h="100%">
+      <Flex h="100%" justify="space-between" align="center">
         <HStack>
-          <Input placeholder='Socket url' ref={urlInputRef}/>
+          <Input placeholder="Socket url" ref={urlInputRef} />
           <ButtonGroup>
             <Button
-              colorScheme={socketId ? 'red' : 'blue'}
+              colorScheme={socketId ? "red" : "blue"}
               onClick={toggleConnection}
-              variant={socketId ? 'outline' : 'solid'}
+              variant={socketId ? "outline" : "solid"}
             >
-              {socketId ? 'Disconnect' : 'Connect'}
+              {socketId ? "Disconnect" : "Connect"}
             </Button>
-            <Button onClick={openReqHeaderDrawer} rightIcon={<ArrowDownIcon/>}>
+            <Button onClick={openReqHeaderDrawer} rightIcon={<ArrowDownIcon />}>
               Req headers
             </Button>
             <RequestHeaderDrawer
@@ -65,110 +67,128 @@ const Header = () => {
         </HStack>
         {socketId && (
           <HStack>
-            <CheckCircleIcon color='green'/>
+            <CheckCircleIcon color="green" />
             <Text>Socket id: {socketId}</Text>
           </HStack>
         )}
         <Button onClick={toggleColorMode}>
-          Toggle {colorMode === 'light' ? 'Dark' : 'Light'}
+          Toggle {colorMode === "light" ? "Dark" : "Light"}
         </Button>
       </Flex>
     </Box>
-  )
-}
+  );
+};
 
-const RequestHeaderDrawer = ({isOpen, close}: { isOpen: boolean, close: () => void }) => {
-  const [inputPairIds, setInputPairIds] = useState(1);
-  const inputsRef = useRef<Record<string, { headerNameInput?: HTMLInputElement, headerValueInput?: HTMLInputElement }>>({});
-  const {setHeaders} = useSocket();
+const RequestHeaderDrawer = ({
+  isOpen,
+  close,
+}: {
+  isOpen: boolean;
+  close: () => void;
+}) => {
+  const [allHeaders, setAllHeaders] = useState<Record<string, HeaderInfo>>({});
+  const [headerCount, setHeaderCount] = useState(1);
+  const { setHeaders, getHeaders } = useSocket();
   const [isSaved, setIsSaved] = useState(false);
 
+  useEffect(() => {
+    setAllHeaders(getHeaders());
+  }, []);
+
   const addMoreHeaderInput = () => {
-    setInputPairIds(prevState => prevState + 1);
-  }
+    setHeaderCount((prevState) => prevState + 1);
+  };
 
   const handleSave = () => {
-    const headers: Record<string, string> = {};
-    const inputBoxObj = inputsRef.current;
-    for (const indexKey in inputBoxObj) {
-      const nameInput = inputBoxObj[indexKey].headerNameInput;
-      const valueInput = inputBoxObj[indexKey].headerValueInput;
-      const name = nameInput?.value, value = valueInput?.value;
-      if (name && value) {
-        headers[name] = value;
-      }
-    }
-    setHeaders(headers);
+    setHeaders(allHeaders);
     setIsSaved(true);
   };
 
-  const attachNodes = (node: HTMLInputElement, index: number, type: 'key' | 'value') => {
-    const inputIdentifier = type === 'key' ? 'headerNameInput' : 'headerValueInput';
-    if (!!inputsRef.current[String(index)]) {
-      inputsRef.current[String(index)] = {
-        ...inputsRef.current[String(index)],
-        [inputIdentifier]: node,
+  const handleInputChange =
+    (index: number) => (e: ChangeEvent<HTMLInputElement>) => {
+      setIsSaved(false);
+      const strIndex = String(index);
+      const inputId = e.target.id as keyof HeaderInfo;
+      const changedValue =
+        inputId === "isActive" ? e.target.checked : e.target.value;
+      if (allHeaders[strIndex]) {
+        setAllHeaders((prevState) => ({
+          ...prevState,
+          [strIndex]: {
+            ...allHeaders[strIndex],
+            [inputId]: changedValue,
+          },
+        }));
+      } else {
+        setAllHeaders((prevState) => ({
+          ...prevState,
+          [strIndex]: {
+            key: "",
+            value: "",
+            isActive: true,
+            [inputId]: changedValue,
+          },
+        }));
       }
-    } else {
-      inputsRef.current[String(index)] = {
-        [inputIdentifier]: node,
-      }
-    }
-  };
-
-  const breakSavedState = useCallback(() => {
-    setIsSaved(false);
-  }, [])
+    };
 
   return (
-    <Drawer onClose={close} isOpen={isOpen} placement='top'>
-      <DrawerOverlay/>
-      <DrawerContent width='1000px' margin='0 auto'>
-        <DrawerCloseButton/>
+    <Drawer onClose={close} isOpen={isOpen} placement="top">
+      <DrawerOverlay />
+      <DrawerContent width="1000px" margin="0 auto">
+        <DrawerCloseButton />
         <DrawerHeader>Request headers</DrawerHeader>
         <DrawerBody>
-          {Array(inputPairIds).fill('headerPair').map((_, index) => (
-            <HStack spacing={3} key={index} mt='2'>
-              <Input
-                placeholder='Key'
-                width='30%'
-                ref={node => {
-                  if (node) {
-                    attachNodes(node, index, 'key');
-                  }
-                }}
-                onChange={breakSavedState}
-              />
-              <Input
-                placeholder='Value'
-                width='70%'
-                ref={node => {
-                  if (node) {
-                    attachNodes(node, index, 'value');
-                  }
-                }}
-                onChange={breakSavedState}
-              />
-            </HStack>
-          ))}
+          {Array(headerCount)
+            .fill("headerPair")
+            .map((_, index) => (
+              <HStack spacing={3} key={index} mt="2">
+                <Checkbox
+                  id="isActive"
+                  size="lg"
+                  isChecked={allHeaders[String(index)]?.isActive}
+                  onChange={handleInputChange(index)}
+                />
+                <Input
+                  placeholder="Key"
+                  width="30%"
+                  id="key"
+                  value={allHeaders[String(index)]?.key ?? ""}
+                  onChange={handleInputChange(index)}
+                />
+                <Input
+                  placeholder="Value"
+                  width="70%"
+                  id="value"
+                  value={allHeaders[String(index)]?.value ?? ""}
+                  onChange={handleInputChange(index)}
+                />
+              </HStack>
+            ))}
           <HStack>
             <Button
-              variant='outline'
-              mt='5' mb='5'
+              variant="outline"
+              mt="5"
+              mb="5"
               onClick={addMoreHeaderInput}
-              rightIcon={<AddIcon/>}
+              rightIcon={<AddIcon />}
             >
-              Add more header
+              Add more
             </Button>
-            <Spacer/>
-            <Button variant={isSaved ? 'outline' : 'solid'} colorScheme='blue' onClick={handleSave}>
-              {isSaved ? 'Saved' : 'Save'}
+            <Spacer />
+            <Button
+              leftIcon={isSaved ? <CheckIcon /> : undefined}
+              variant={isSaved ? "outline" : "solid"}
+              colorScheme="blue"
+              onClick={handleSave}
+            >
+              {isSaved ? "Saved" : "Save"}
             </Button>
           </HStack>
         </DrawerBody>
       </DrawerContent>
     </Drawer>
-  )
-}
+  );
+};
 
 export default Header;

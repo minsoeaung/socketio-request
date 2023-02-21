@@ -4,7 +4,7 @@ import {ArrowUpIcon} from "@chakra-ui/icons";
 import isBase64ImageString from "../../utils/isBase64ImageString";
 
 const OutGoingEvents = () => {
-  const {outEvents} = useSocket();
+  const { emittedEvents } = useSocket();
 
   return (
     <Box p={5} shadow="md" borderWidth="1px" h="100%">
@@ -17,10 +17,10 @@ const OutGoingEvents = () => {
         overflowY="scroll"
         overflowX="hidden"
       >
-        {outEvents.map(({eventName, payload, timestamp}) => (
+        {emittedEvents.map(({ eventName, payload, timestamp }) => (
           <ListItem key={timestamp}>
             <HStack align="center" justify="space">
-              <ListIcon as={ArrowUpIcon} color="cyan.500"/>
+              <ListIcon as={ArrowUpIcon} color="cyan.500" />
               <Tag variant="subtle" colorScheme="cyan">
                 <TagLabel>{eventName}</TagLabel>
               </Tag>
@@ -39,7 +39,7 @@ const OutGoingEvents = () => {
                   <Text>{payload}</Text>
                 ))
               )}
-              <Spacer/>
+              <Spacer />
               <Text fontSize="sm" as="i" fontWeight="thin">
                 at {timestamp}
               </Text>
