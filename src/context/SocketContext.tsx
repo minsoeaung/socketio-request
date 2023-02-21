@@ -36,7 +36,6 @@ export const SocketContextProvider = ({
       });
       socketRef.current.on("connect_error", (err) => {
         setSocketId("");
-        console.log("why na");
         const toastOption: Omit<UseToastOptions, "id"> = {
           title: "Connection error",
           description: `Due to ${err.message}`,
