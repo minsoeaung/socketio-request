@@ -1,10 +1,22 @@
-import {Box, Button, Flex, Heading, HStack, Input, Radio, RadioGroup, Stack, Textarea, VStack,} from "@chakra-ui/react";
-import {ChangeEventHandler, KeyboardEventHandler, useCallback, useRef, useState,} from "react";
+import {
+  Box,
+  Button,
+  Flex,
+  Heading,
+  HStack,
+  Input,
+  Radio,
+  RadioGroup,
+  Stack,
+  Textarea,
+  VStack,
+} from "@chakra-ui/react";
+import { ChangeEventHandler, KeyboardEventHandler, useCallback, useRef, useState, } from "react";
 import getBase64 from "../../utils/getBase64";
-import {useSocket} from "../../context/SocketContext";
+import { useSocket } from "../../context/SocketContext";
 import tryParseJSONObject from "../../utils/tryParseJSONObject";
-import {CheckIcon, WarningIcon} from "@chakra-ui/icons";
-import {Base64String, ElementType} from "../../utils/types";
+import { CheckIcon, WarningIcon } from "@chakra-ui/icons";
+import { Base64String, ElementType } from "../../utils/types";
 
 const PAYLOAD_MODES = ["text", "json", "binary"] as const;
 
@@ -15,10 +27,10 @@ const EventEmitter = () => {
     useState<PayloadMode>("text");
   const [base64Str, setBase64Str] = useState<Base64String>();
   const [json, setJson] = useState<object>();
-  const eventNameInputRef = useRef<HTMLInputElement>(null);
+  const [eventName, setEventName] = useState('');
   const textInputRef = useRef<HTMLTextAreaElement>(null);
   const timerRef = useRef<number>();
-  const { emitEvent } = useSocket();
+  const {emitEvent, socketId} = useSocket();
 
   const handlePayloadTypeChange = useCallback((value: PayloadMode) => {
     setSelectedPayloadMode(value);
@@ -37,9 +49,6 @@ const EventEmitter = () => {
   );
 
   const handleSend = () => {
-    const eventName = eventNameInputRef.current?.value;
-    if (!eventName) return;
-
     switch (selectedPayloadMode) {
       case "text":
         emitEvent(eventName, textInputRef.current?.value ?? "");
@@ -106,9 +115,9 @@ const EventEmitter = () => {
                 rows={7}
               />
               {json ? (
-                <CheckIcon pos="absolute" top={1} right={1} color="green.500" />
+                <CheckIcon pos="absolute" top={1} right={1} color="green.500"/>
               ) : (
-                <WarningIcon pos="absolute" top={1} right={1} color="red.500" />
+                <WarningIcon pos="absolute" top={1} right={1} color="red.500"/>
               )}
             </Box>
             <Textarea
@@ -120,14 +129,15 @@ const EventEmitter = () => {
         </VStack>
         <HStack maxW="50%">
           <Input
-            placeholder="Event name"
-            ref={eventNameInputRef}
+            placeholder="Event"
+            value={eventName}
+            onChange={e => setEventName(e.target.value)}
             onKeyDown={handleKeyDown}
           />
           <Button
             colorScheme="teal"
             variant="outline"
-            disabled
+            isDisabled={!eventName.trim() || !socketId}
             onClick={handleSend}
           >
             Send

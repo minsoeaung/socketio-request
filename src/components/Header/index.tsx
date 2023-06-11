@@ -16,22 +16,22 @@ import {
   Text,
   useColorMode,
 } from "@chakra-ui/react";
-import {useSocket} from "../../context/SocketContext";
-import {ChangeEvent, useCallback, useEffect, useRef, useState,} from "react";
-import {AddIcon, ArrowDownIcon, CheckCircleIcon, CheckIcon,} from "@chakra-ui/icons";
-import {HeaderInfo} from "../../utils/types";
+import { useSocket } from "../../context/SocketContext";
+import { ChangeEvent, useCallback, useEffect, useState, } from "react";
+import { AddIcon, ArrowDownIcon, CheckCircleIcon, CheckIcon, } from "@chakra-ui/icons";
+import { HeaderInfo } from "../../utils/types";
 
 const Header = () => {
-  const { colorMode, toggleColorMode } = useColorMode();
-  const { connectSocket, disconnectSocket, socketId } = useSocket();
+  const {colorMode, toggleColorMode} = useColorMode();
+  const {connectSocket, disconnectSocket, socketId} = useSocket();
   const [isReqHeaderDrawerOpen, setIsReqHeaderDrawerOpen] = useState(false);
-  const urlInputRef = useRef<HTMLInputElement>(null);
+  const [urlValue, setUrlValue] = useState('');
 
   const toggleConnection = () => {
     if (socketId) {
       disconnectSocket();
-    } else if (urlInputRef.current) {
-      connectSocket(urlInputRef.current.value);
+    } else if (urlValue.trim()) {
+      connectSocket(urlValue.trim());
     }
   };
 
@@ -47,17 +47,27 @@ const Header = () => {
     <Box h="100%">
       <Flex h="100%" justify="space-between" align="center">
         <HStack>
-          <Input placeholder="Socket url" ref={urlInputRef} />
+          <Input
+            placeholder="http://"
+            value={urlValue}
+            onChange={e => setUrlValue(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && urlValue.trim()) {
+                toggleConnection();
+              }
+            }}
+          />
           <ButtonGroup>
             <Button
               colorScheme={socketId ? "red" : "blue"}
               onClick={toggleConnection}
               variant={socketId ? "outline" : "solid"}
+              isDisabled={!urlValue.trim()}
             >
               {socketId ? "Disconnect" : "Connect"}
             </Button>
-            <Button onClick={openReqHeaderDrawer} rightIcon={<ArrowDownIcon />}>
-              Req headers
+            <Button onClick={openReqHeaderDrawer} rightIcon={<ArrowDownIcon/>}>
+              Headers
             </Button>
             <RequestHeaderDrawer
               isOpen={isReqHeaderDrawerOpen}
@@ -67,7 +77,7 @@ const Header = () => {
         </HStack>
         {socketId && (
           <HStack>
-            <CheckCircleIcon color="green" />
+            <CheckCircleIcon color="green"/>
             <Text>Socket id: {socketId}</Text>
           </HStack>
         )}
@@ -80,15 +90,15 @@ const Header = () => {
 };
 
 const RequestHeaderDrawer = ({
-  isOpen,
-  close,
-}: {
+                               isOpen,
+                               close,
+                             }: {
   isOpen: boolean;
   close: () => void;
 }) => {
   const [allHeaders, setAllHeaders] = useState<Record<string, HeaderInfo>>({});
   const [headerCount, setHeaderCount] = useState(1);
-  const { setHeaders, getHeaders } = useSocket();
+  const {setHeaders, getHeaders} = useSocket();
   const [isSaved, setIsSaved] = useState(false);
 
   useEffect(() => {
@@ -134,9 +144,9 @@ const RequestHeaderDrawer = ({
 
   return (
     <Drawer onClose={close} isOpen={isOpen} placement="top">
-      <DrawerOverlay />
+      <DrawerOverlay/>
       <DrawerContent width="1000px" margin="0 auto">
-        <DrawerCloseButton />
+        <DrawerCloseButton/>
         <DrawerHeader>Request headers</DrawerHeader>
         <DrawerBody>
           {Array(headerCount)
@@ -171,13 +181,13 @@ const RequestHeaderDrawer = ({
               mt="5"
               mb="5"
               onClick={addMoreHeaderInput}
-              rightIcon={<AddIcon />}
+              rightIcon={<AddIcon/>}
             >
               Add more
             </Button>
-            <Spacer />
+            <Spacer/>
             <Button
-              leftIcon={isSaved ? <CheckIcon /> : undefined}
+              leftIcon={isSaved ? <CheckIcon/> : undefined}
               variant={isSaved ? "outline" : "solid"}
               colorScheme="blue"
               onClick={handleSave}

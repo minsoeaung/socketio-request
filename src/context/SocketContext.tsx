@@ -1,25 +1,31 @@
-import {createContext, ReactNode, useCallback, useContext, useRef, useState,} from "react";
-import {io, Socket} from "socket.io-client";
-import {ToastId, useToast, UseToastOptions} from "@chakra-ui/react";
-import {EmittedEvent, HeaderInfo, Headers, ListeningEvent, Payload, ReceivedEvent,} from "../utils/types";
+import { createContext, ReactNode, useCallback, useContext, useRef, useState, } from "react";
+import { io, Socket } from "socket.io-client";
+import { ToastId, useToast, UseToastOptions } from "@chakra-ui/react";
+import { EmittedEvent, HeaderInfo, Headers, ListeningEvent, Payload, ReceivedEvent, } from "../utils/types";
 
 const SocketContext = createContext({
-  connectSocket: (url: string) => {},
-  disconnectSocket: () => {},
-  emitEvent: (eventName: string, payload: Payload) => {},
+  connectSocket: (url: string) => {
+  },
+  disconnectSocket: () => {
+  },
+  emitEvent: (eventName: string, payload: Payload) => {
+  },
   socketId: "",
   emittedEvents: [] as EmittedEvent[],
-  setHeaders: (headers: Record<string, HeaderInfo>) => {},
+  setHeaders: (headers: Record<string, HeaderInfo>) => {
+  },
   getHeaders: (): Record<string, HeaderInfo> => ({}),
-  addEventListener: (eventName: string) => {},
-  removeEventListener: (eventName: string) => {},
+  addEventListener: (eventName: string) => {
+  },
+  removeEventListener: (eventName: string) => {
+  },
   receivedEvents: [] as ReceivedEvent[],
   listeningEvents: [] as ListeningEvent[],
 });
 
 export const SocketContextProvider = ({
-  children,
-}: {
+                                        children,
+                                      }: {
   children: ReactNode;
 }) => {
   const toast = useToast();
@@ -30,7 +36,7 @@ export const SocketContextProvider = ({
   const [receivedEvents, setReceivedEvents] = useState<ReceivedEvent[]>([]);
   const [listeningEvents, setListeningEvents] = useState<ListeningEvent[]>([]);
   const reqHeadersRef = useRef<Record<string, HeaderInfo>>({
-    "0": { key: "", value: "", isActive: true },
+    "0": {key: "", value: "", isActive: true},
   });
 
   const connectSocket = useCallback(
@@ -39,6 +45,7 @@ export const SocketContextProvider = ({
         extraHeaders: reqHeadersRef.current
           ? getActiveHeaders(reqHeadersRef.current)
           : {},
+        autoConnect: false
       });
       socketRef.current.on("connect_error", (err) => {
         setSocketId("");
@@ -120,11 +127,11 @@ export const SocketContextProvider = ({
         if (existingEvent) {
           return prevState.map((event) =>
             event.eventName === eventName
-              ? { ...existingEvent, isActive: true }
+              ? {...existingEvent, isActive: true}
               : event
           );
         } else {
-          return [...prevState, { eventName, isActive: true }];
+          return [...prevState, {eventName, isActive: true}];
         }
       });
     }
@@ -135,7 +142,7 @@ export const SocketContextProvider = ({
       socketRef.current.off(eventName);
       setListeningEvents((prevState) =>
         prevState.map((event) =>
-          event.eventName === eventName ? { ...event, isActive: false } : event
+          event.eventName === eventName ? {...event, isActive: false} : event
         )
       );
     }

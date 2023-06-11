@@ -1,24 +1,35 @@
-import {AddIcon, CloseIcon} from "@chakra-ui/icons";
-import {Box, Heading, HStack, IconButton, Input, Tag, TagLabel, TagRightIcon, Wrap, WrapItem,} from "@chakra-ui/react";
-import {memo, useState} from "react";
-import {useSocket} from "../../context/SocketContext";
+import { AddIcon, CloseIcon } from "@chakra-ui/icons";
+import {
+  Box,
+  Heading,
+  HStack,
+  IconButton,
+  Input,
+  Tag,
+  TagLabel,
+  TagRightIcon,
+  Wrap,
+  WrapItem,
+} from "@chakra-ui/react";
+import { memo, useState } from "react";
+import { useSocket } from "../../context/SocketContext";
 
 const ListeningEvents = () => {
-  const { listeningEvents } = useSocket();
+  const {listeningEvents} = useSocket();
 
   return (
     <Box p={2} borderWidth="1px" h="100%" maxH="50vh">
       <Heading size="md" mb="4">
-        Listening events
+        Listeners
       </Heading>
       <Wrap spacing={2} align="center">
         {listeningEvents.map((event) => (
           <WrapItem key={event.eventName}>
-            <Event name={event.eventName} isActive={event.isActive} />
+            <Event name={event.eventName} isActive={event.isActive}/>
           </WrapItem>
         ))}
         <WrapItem>
-          <AddEvent />
+          <AddEvent/>
         </WrapItem>
       </Wrap>
     </Box>
@@ -26,8 +37,8 @@ const ListeningEvents = () => {
 };
 
 const Event = memo(
-  ({ name, isActive }: { name: string; isActive: boolean }) => {
-    const { addEventListener, removeEventListener } = useSocket();
+  ({name, isActive}: { name: string; isActive: boolean }) => {
+    const {addEventListener, removeEventListener} = useSocket();
 
     if (!name.trim()) return null;
 
@@ -58,10 +69,12 @@ const AddEvent = memo(() => {
   const [showInput, setShowInput] = useState(false);
   const [value, setValue] = useState("");
 
-  const { addEventListener } = useSocket();
+  const {addEventListener, socketId} = useSocket();
 
   const show = () => {
-    setShowInput(true);
+    if (socketId) {
+      setShowInput(true);
+    }
   };
 
   const hide = () => {
@@ -92,14 +105,14 @@ const AddEvent = memo(() => {
         <IconButton
           color="cyan"
           aria-label="Add event listener"
-          icon={<AddIcon />}
+          icon={<AddIcon/>}
           onClick={add}
           disabled={!value.trim()}
         />
         <IconButton
           color="gray"
           aria-label="Close input box"
-          icon={<CloseIcon />}
+          icon={<CloseIcon/>}
           onClick={hide}
         />
       </HStack>
@@ -112,11 +125,11 @@ const AddEvent = memo(() => {
       variant="outline"
       colorScheme="cyan"
       borderRadius="full"
-      cursor="pointer"
+      cursor={socketId ? "pointer" : "not-allowed"}
       onClick={show}
     >
       <TagLabel>Add event listener</TagLabel>
-      <TagRightIcon boxSize="12px" as={AddIcon} />
+      <TagRightIcon boxSize="12px" as={AddIcon}/>
     </Tag>
   );
 });
