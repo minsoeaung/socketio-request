@@ -1,4 +1,4 @@
-import { AddIcon, CloseIcon } from "@chakra-ui/icons";
+import { AddIcon, CheckIcon, CloseIcon } from "@chakra-ui/icons";
 import {
   Box,
   Heading,
@@ -7,6 +7,7 @@ import {
   Input,
   Tag,
   TagLabel,
+  TagLeftIcon,
   TagRightIcon,
   Wrap,
   WrapItem,
@@ -53,12 +54,15 @@ const Event = memo(
     return (
       <Tag
         size="lg"
-        colorScheme={isActive ? "red" : "gray"}
+        colorScheme={isActive ? "cyan" : "gray"}
         variant={isActive ? "subtle" : "outline"}
         borderRadius="full"
         cursor="pointer"
         onClick={toggle}
       >
+        {isActive && (
+          <TagLeftIcon boxSize='12px' as={CheckIcon}/>
+        )}
         <TagLabel>{name}</TagLabel>
       </Tag>
     );
@@ -101,8 +105,12 @@ const AddEvent = memo(() => {
               add();
             }
           }}
+          borderRadius='full'
+          size='sm'
+          autoFocus
         />
         <IconButton
+          size='sm'
           color="cyan"
           aria-label="Add event listener"
           icon={<AddIcon/>}
@@ -110,10 +118,12 @@ const AddEvent = memo(() => {
           disabled={!value.trim()}
         />
         <IconButton
-          color="gray"
+          size='sm'
+          color="red.200"
           aria-label="Close input box"
           icon={<CloseIcon/>}
           onClick={hide}
+          variant='outline'
         />
       </HStack>
     );

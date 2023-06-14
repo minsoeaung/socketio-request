@@ -21,6 +21,8 @@ export type EmittedEvent = {
   eventName: string;
   payload: Payload;
   timestamp: string;
+  withAck: boolean;
+  ack: string | null;
 };
 
 export type ReceivedEvent = {

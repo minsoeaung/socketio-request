@@ -1,6 +1,7 @@
 import {
   Box,
   Button,
+  Checkbox,
   Flex,
   Heading,
   HStack,
@@ -30,6 +31,7 @@ const EventEmitter = () => {
   const [eventName, setEventName] = useState('');
   const textInputRef = useRef<HTMLTextAreaElement>(null);
   const timerRef = useRef<number>();
+  const withAckCheckboxRef = useRef<HTMLInputElement>(null);
   const {emitEvent, socketId} = useSocket();
 
   const handlePayloadTypeChange = useCallback((value: PayloadMode) => {
@@ -49,15 +51,16 @@ const EventEmitter = () => {
   );
 
   const handleSend = () => {
+    const withAck = !!withAckCheckboxRef.current?.checked;
     switch (selectedPayloadMode) {
       case "text":
-        emitEvent(eventName, textInputRef.current?.value ?? "");
+        emitEvent(eventName, textInputRef.current?.value ?? "", withAck);
         return;
       case "json":
-        emitEvent(eventName, json ?? {});
+        emitEvent(eventName, json ?? {}, withAck);
         return;
       case "binary":
-        emitEvent(eventName, base64Str);
+        emitEvent(eventName, base64Str, withAck);
         return;
     }
   };
@@ -128,6 +131,7 @@ const EventEmitter = () => {
           </Box>
         </VStack>
         <HStack maxW="50%">
+          <Checkbox size='lg' ref={withAckCheckboxRef}>Ack</Checkbox>
           <Input
             placeholder="Event"
             value={eventName}

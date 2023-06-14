@@ -8,7 +8,7 @@ const SocketContext = createContext({
   },
   disconnectSocket: () => {
   },
-  emitEvent: (eventName: string, payload: Payload) => {
+  emitEvent: (eventName: string, payload: Payload, withAck: boolean) => {
   },
   socketId: "",
   emittedEvents: [] as EmittedEvent[],
@@ -84,17 +84,47 @@ export const SocketContextProvider = ({
     }
   }, [socketRef.current]);
 
-  const emitEvent = useCallback((eventName: string, payload: Payload) => {
+  const emitEvent = useCallback((eventName: string, payload: Payload, withAck: boolean) => {
     if (socketRef.current) {
-      socketRef.current.emit(eventName, payload);
-      setEmittedEvents((prevState) => [
-        ...prevState,
-        {
-          eventName,
-          payload,
-          timestamp: new Date().toISOString(),
-        },
-      ]);
+      if (withAck) {
+        const time = new Date().toISOString();
+        socketRef.current.emit(eventName, payload, (...response: any[]) => {
+          setEmittedEvents(prevState => {
+            return prevState.map(event => {
+              if (event.timestamp === time) {
+                return {
+                  ...event,
+                  ack: JSON.stringify(response)
+                }
+              } else {
+                return event;
+              }
+            })
+          })
+        });
+        setEmittedEvents((prevState) => [
+          ...prevState,
+          {
+            eventName,
+            payload,
+            timestamp: time,
+            withAck,
+            ack: null
+          },
+        ]);
+      } else {
+        socketRef.current.emit(eventName, payload);
+        setEmittedEvents((prevState) => [
+          ...prevState,
+          {
+            eventName,
+            payload,
+            timestamp: new Date().toISOString(),
+            withAck,
+            ack: null
+          },
+        ]);
+      }
     }
   }, []);
 

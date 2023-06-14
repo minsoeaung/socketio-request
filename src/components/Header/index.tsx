@@ -11,6 +11,7 @@ import {
   DrawerOverlay,
   Flex,
   HStack,
+  IconButton,
   Input,
   Spacer,
   Text,
@@ -18,7 +19,7 @@ import {
 } from "@chakra-ui/react";
 import { useSocket } from "../../context/SocketContext";
 import { ChangeEvent, useCallback, useEffect, useState, } from "react";
-import { AddIcon, ArrowDownIcon, CheckCircleIcon, CheckIcon, } from "@chakra-ui/icons";
+import { AddIcon, ArrowDownIcon, CheckCircleIcon, CheckIcon, MoonIcon, SunIcon, } from "@chakra-ui/icons";
 import { HeaderInfo } from "../../utils/types";
 
 const Header = () => {
@@ -45,7 +46,7 @@ const Header = () => {
 
   return (
     <Box h="100%">
-      <Flex h="100%" justify="space-between" align="center">
+      <Flex h="100%" justify="space-between" align="center" pl='5px' pr='5px'>
         <HStack>
           <Input
             placeholder="http://"
@@ -66,7 +67,7 @@ const Header = () => {
             >
               {socketId ? "Disconnect" : "Connect"}
             </Button>
-            <Button onClick={openReqHeaderDrawer} rightIcon={<ArrowDownIcon/>}>
+            <Button onClick={openReqHeaderDrawer} rightIcon={<ArrowDownIcon/>} isDisabled={!socketId}>
               Headers
             </Button>
             <RequestHeaderDrawer
@@ -81,9 +82,11 @@ const Header = () => {
             <Text>Socket id: {socketId}</Text>
           </HStack>
         )}
-        <Button onClick={toggleColorMode}>
-          Toggle {colorMode === "light" ? "Dark" : "Light"}
-        </Button>
+        <IconButton
+          aria-label='Dark mode, light mode'
+          icon={colorMode === "light" ? <MoonIcon/> : <SunIcon/>}
+          onClick={toggleColorMode}
+        />
       </Flex>
     </Box>
   );
